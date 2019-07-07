@@ -1,0 +1,2 @@
+# Stripper Dump Parser
+ 
