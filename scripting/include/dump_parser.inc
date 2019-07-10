@@ -169,14 +169,14 @@ native ArrayList GetDumpEntityAsList(int index);
 stock bool GetDumpEntity(int index, Entity ent)
 {
 	ArrayList temp = GetDumpEntityAsList(index);
-	if(temp != INVALID_HANDLE)
+	if(temp != INVALID_HANDLE && temp != null)
 	{
 		temp.GetArray(0, ent);
 		delete temp;
 		return true;
 	}
 	delete temp;
-	return false
+	return false;
 }
 
 /* *
@@ -201,7 +201,7 @@ native ArrayList GetDumpEntityFromID(int hammerid);
 stock bool GetDumpEntity2(int hammerid, Entity ent)
 {
 	ArrayList temp = GetDumpEntityFromID(hammerid);
-	if(temp != INVALID_HANDLE)
+	if(temp != INVALID_HANDLE && temp != null)
 	{
 		temp.GetArray(0, ent);
 		delete temp;
@@ -253,7 +253,10 @@ native bool IsDumpReady();
 stock int GetOutputCount(int index, const char[] output = "")
 {
 	Entity ent;
-	GetDumpEntity(index, ent);
+	if(!GetDumpEntity(index, ent))
+	{
+		return -1;
+	}
 
 	int count = 0;
 	if(output[0] == 0)
@@ -272,7 +275,7 @@ stock int GetOutputCount(int index, const char[] output = "")
 			}
 		}
 	}
-	ent.Cleanup();
+	ent.CleanUp();
 	return count;
 }
 
@@ -291,7 +294,11 @@ stock int GetOutputCount(int index, const char[] output = "")
 stock bool GetOutputTarget(int index, const char[] output, int num, char[] target, int length = MEMBER_SIZE)
 {
 	Entity ent;
-	GetDumpEntity(index, ent);
+	if(!GetDumpEntity(index, ent))
+	{
+		return false;
+	}
+	
 
 	int count = 0;
 	bool ret = false;
@@ -320,7 +327,7 @@ stock bool GetOutputTarget(int index, const char[] output, int num, char[] targe
 		}
 	}
 
-	ent.Cleanup();
+	ent.CleanUp();
 	return ret;
 }
 
@@ -339,7 +346,11 @@ stock bool GetOutputTarget(int index, const char[] output, int num, char[] targe
 stock bool GetOutputTargetInput(int index, const char[] output, int num, char[] input, int length = MEMBER_SIZE)
 {
 	Entity ent;
-	GetDumpEntity(index, ent);
+	if(!GetDumpEntity(index, ent))
+	{
+		return false;
+	}
+
 	int count = 0;
 	bool ret = false;
 	char buffer[MEMBER_SIZE];
@@ -367,7 +378,7 @@ stock bool GetOutputTargetInput(int index, const char[] output, int num, char[] 
 		}
 	}
 
-	ent.Cleanup();
+	ent.CleanUp();
 	return ret;
 }
 
@@ -386,7 +397,11 @@ stock bool GetOutputTargetInput(int index, const char[] output, int num, char[] 
 stock bool GetOutputParameter(int index, const char[] output, int num, char[] parameters, int length = MEMBER_SIZE)
 {
 	Entity ent;
-	GetDumpEntity(index, ent);
+	if(!GetDumpEntity(index, ent))
+	{
+		return false;
+	}
+
 	int count = 0;
 	bool ret = false;
 	char buffer[MEMBER_SIZE];
@@ -414,7 +429,7 @@ stock bool GetOutputParameter(int index, const char[] output, int num, char[] pa
 		}
 	}
 
-	ent.Cleanup();
+	ent.CleanUp();
 	return ret;
 }
 
@@ -431,7 +446,11 @@ stock bool GetOutputParameter(int index, const char[] output, int num, char[] pa
 stock float GetOutputDelay(int index, const char[] output, int num)
 {
 	Entity ent;
-	GetDumpEntity(index, ent);
+	if(!GetDumpEntity(index, ent))
+	{
+		return -1.0;
+	}
+	
 	float delay = 0.0;
 	int count = 0;
 	char buffer[MEMBER_SIZE];
@@ -458,7 +477,7 @@ stock float GetOutputDelay(int index, const char[] output, int num)
 		}
 	}
 
-	ent.Cleanup();
+	ent.CleanUp();
 	return delay;
 }
 

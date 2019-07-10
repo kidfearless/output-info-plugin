@@ -428,12 +428,12 @@ public any Native_GetDumpStringMap(Handle plugin, int numParams)
 {
 	if(!gB_Ready)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "Native called before dump file has been processed.");
+		//LogError("Native called before dump file has been processed.");
 		return INVALID_HANDLE;
 	}
 	if(gA_Entites.Length < 1 || gSM_EntityList.Size < 1)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity lists are empty.");
+		//LogError("Entity lists are empty.");
 		return INVALID_HANDLE;
 	}
 
@@ -445,12 +445,12 @@ public any Native_GetDumpEntityAsList(Handle plugin, int numParams)
 {
 	if(!gB_Ready)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "Native called before dump file has been processed.");
+		//LogError("Native called before dump file has been processed.");
 		return INVALID_HANDLE;
 	}
 	if(gA_Entites.Length < 1 || gSM_EntityList.Size < 1)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity lists are empty.");
+		//LogError("Entity lists are empty.");
 		return INVALID_HANDLE;
 	}
 
@@ -462,13 +462,13 @@ public any Native_GetDumpEntityAsList(Handle plugin, int numParams)
 	int position = -1;
 	if(!gSM_EntityList.GetValue(id, position))
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "Could not find entity with that index.");
+		//LogError("Could not find entity with with the index '%i', hammmerid '%i'.", index, hammer);
 		return INVALID_HANDLE;	
 	}
 
 	if(position >= gA_Entites.Length || position < 0)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "List position out of range");
+		//LogError( "List position out of range");
 		return INVALID_HANDLE;	
 	}
 
@@ -488,12 +488,12 @@ public any Native_GetDumpEntityFromID(Handle plugin, int numParams)
 {
 	if(!gB_Ready)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "Native called before dump file has been processed.");
+		//LogError("Native called before dump file has been processed.");
 		return INVALID_HANDLE;
 	}
 	if(gA_Entites.Length < 1 || gSM_EntityList.Size < 1)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity lists are empty.");
+		//LogError("Entity lists are empty.");
 		return INVALID_HANDLE;
 	}
 
@@ -504,13 +504,13 @@ public any Native_GetDumpEntityFromID(Handle plugin, int numParams)
 	int position = -1;
 	if(!gSM_EntityList.GetValue(id, position))
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "Could not find entity with that index.");
+		//LogError("Could not find entity with that index.");
 		return INVALID_HANDLE;	
 	}
 
 	if(position >= gA_Entites.Length || position < 0)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "List position out of range");
+		//LogError("List position out of range");
 		return INVALID_HANDLE;	
 	}
 
@@ -530,12 +530,12 @@ public any Native_GetDumpEntities(Handle plugin, int numParams)
 {
 	if(!gB_Ready)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "Native called before dump file has been processed.");
+		//LogError("Native called before dump file has been processed.");
 		return INVALID_HANDLE;
 	}
 	if(gA_Entites.Length < 1 || gSM_EntityList.Size < 1)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity lists are empty.");
+		//LogError("Entity lists are empty.");
 		return INVALID_HANDLE;
 	}
 	
