@@ -4,7 +4,7 @@
 #define _output_dump_parser_defined_
 
 #define OUTPUT_SIZE 2048
-#define MEMBER_SIZE 32
+#define MEMBER_SIZE 128
 
 #define DEBUG
 
