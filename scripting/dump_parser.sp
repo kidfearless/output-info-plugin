@@ -39,7 +39,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 {
 	CreateNative("GetDumpStringMap", Native_GetDumpStringMap);
 	CreateNative("GetDumpEntityAsList", Native_GetDumpEntityAsList);
+	CreateNative("GetDumpEntityAsArray", Native_GetDumpEntityAsArray);
 	CreateNative("GetDumpEntityFromID", Native_GetDumpEntityFromID);
+	CreateNative("GetDumpEntityFromIDAsArray", Native_GetDumpEntityFromIDAsArray);
 	CreateNative("GetDumpEntities", Native_GetDumpEntities);
 	CreateNative("IsDumpReady", Native_IsDumpReady);
 
@@ -483,6 +485,48 @@ public any Native_GetDumpEntityAsList(Handle plugin, int numParams)
 	return list;
 }
 
+// native bool GetDumpEntityAsArray(int index, any[] entity);
+public any Native_GetDumpEntityAsArray(Handle plugin, int numParams)
+{
+	if(!gB_Ready)
+	{
+		//LogError("Native called before dump file has been processed.");
+		return false;
+	}
+	if(gA_Entites.Length < 1 || gSM_EntityList.Size < 1)
+	{
+		//LogError("Entity lists are empty.");
+		return false;
+	}
+
+	int index = GetNativeCell(1);
+	int hammer = GetHammerFromIndex(index);
+	char id[MEMBER_SIZE];
+	IntToString(hammer, id, MEMBER_SIZE);
+
+	int position = -1;
+	if(!gSM_EntityList.GetValue(id, position))
+	{
+		//LogError("Could not find entity with with the index '%i', hammmerid '%i'.", index, hammer);
+		return false;	
+	}
+
+	if(position >= gA_Entites.Length || position < 0)
+	{
+		//LogError( "List position out of range");
+		return false;	
+	}
+
+	Entity temp;
+	gA_Entites.GetArray(position, temp);
+	
+	Entity ent;
+	CloneEntity(temp, ent);
+	SetNativeArray(2, ent, sizeof(Entity));
+
+	return true;
+}
+
 // native ArrayList GetDumpEntityFromID(int ent);
 public any Native_GetDumpEntityFromID(Handle plugin, int numParams)
 {
@@ -523,6 +567,47 @@ public any Native_GetDumpEntityFromID(Handle plugin, int numParams)
 	list.PushArray(ent);
 
 	return list;
+}
+
+// native bool GetDumpEntityFromIDAsArray(int hammerid, any[] entity);
+public any Native_GetDumpEntityFromIDAsArray(Handle plugin, int numParams)
+{
+	if(!gB_Ready)
+	{
+		//LogError("Native called before dump file has been processed.");
+		return false;
+	}
+	if(gA_Entites.Length < 1 || gSM_EntityList.Size < 1)
+	{
+		//LogError("Entity lists are empty.");
+		return false;
+	}
+
+	int hammer = GetNativeCell(1);
+	char id[MEMBER_SIZE];
+	IntToString(hammer, id, MEMBER_SIZE);
+
+	int position = -1;
+	if(!gSM_EntityList.GetValue(id, position))
+	{
+		//LogError("Could not find entity with that index.");
+		return false;	
+	}
+
+	if(position >= gA_Entites.Length || position < 0)
+	{
+		//LogError("List position out of range");
+		return false;	
+	}
+
+	Entity temp;
+	gA_Entites.GetArray(position, temp);
+	
+	Entity ent;
+	CloneEntity(temp, ent);
+
+
+	return true;
 }
 
 // native ArrayList GetDumpEntities();

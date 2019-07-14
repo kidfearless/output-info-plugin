@@ -148,13 +148,26 @@ forward void OnDumpFileReady();
 forward void OnDumpFileProcessed();
 
 /* *
-*	Retrieves a copy of the 'Entity' enum struct for the given index and places it inside an ArrayList.
+*	Retrieves a copy of the 'Entity' enum struct, as an any array, for the given entity index.
 *	The ArrayList will not be cleared automatically.
 *	Use the GetDumpEntity stock instead.
 *	
 *	Param: index		Entity index.
+*	Param: entity		Entity enum struct as an any array if found.
 *	
-*	return: ArrayList containing the Entity enum struct if found, INVALID_HANDLE otherwise.
+*	return: true if successful, false otherwise.
+* */
+native bool GetDumpEntityAsArray(int index, any[] entity);
+
+/* *
+*	Retrieves a copy of the 'Entity' enum struct for the given entity index and places it inside an ArrayList.
+*	The ArrayList will not be cleared automatically.
+*	Use the GetDumpEntity stock instead.
+*	
+*	Param: index		Entity index.
+*	Param: entity 		Entity enum struct as generic any array
+*	
+*	return: true if successful, false otherwise.
 * */
 native ArrayList GetDumpEntityAsList(int index);
 
@@ -168,15 +181,7 @@ native ArrayList GetDumpEntityAsList(int index);
 * */
 stock bool GetDumpEntity(int index, Entity ent)
 {
-	ArrayList temp = GetDumpEntityAsList(index);
-	if(temp != INVALID_HANDLE && temp != null)
-	{
-		temp.GetArray(0, ent);
-		delete temp;
-		return true;
-	}
-	delete temp;
-	return false;
+	return GetDumpEntityAsArray(index, ent);
 }
 
 /* *
@@ -191,6 +196,18 @@ stock bool GetDumpEntity(int index, Entity ent)
 native ArrayList GetDumpEntityFromID(int hammerid);
 
 /* *
+*	Retrieves a copy of the 'Entity' enum struct from the given hammer id.
+*	The ArrayList will not be cleared automatically.
+*	Use the GetDumpEntity2 stock instead.
+*	
+*	Param: hammerid		Hammer id of the entity.
+*	Param: entity 		Entity enum struct as generic any array
+*	
+*	return: true if successful, false otherwise.
+* */
+native bool GetDumpEntityFromIDAsArray(int hammerid, any[] entity);
+
+/* *
 *	Retrieves a copy of the 'Entity' enum struct for the given hammer id.
 *	
 *	Param: hammerid		Hammer id of the entity.
@@ -200,15 +217,7 @@ native ArrayList GetDumpEntityFromID(int hammerid);
 * */
 stock bool GetDumpEntity2(int hammerid, Entity ent)
 {
-	ArrayList temp = GetDumpEntityFromID(hammerid);
-	if(temp != INVALID_HANDLE && temp != null)
-	{
-		temp.GetArray(0, ent);
-		delete temp;
-		return true;
-	}
-	delete temp;
-	return false
+	return GetDumpEntityFromIDAsArray(hammerid, ent);
 }
 
 /* *
@@ -497,7 +506,9 @@ public void __pl_output_dump_parser_SetNTVOptional()
 {
 	MarkNativeAsOptional("GetDumpStringMap");
 	MarkNativeAsOptional("GetDumpEntityAsList");
+	MarkNativeAsOptional("GetDumpEntityAsArray");
 	MarkNativeAsOptional("GetDumpEntityFromID");
+	MarkNativeAsOptional("GetDumpEntityFromIDAsArray");
 	MarkNativeAsOptional("GetDumpEntities");
 	MarkNativeAsOptional("IsDumpReady");
 }
