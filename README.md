@@ -3,7 +3,6 @@
 Stripper Dump Parser is a mostly extension free alternative to slidybat's [OutputInfo extension](https://github.com/SlidyBat/sm-ext-outputinfo). Stripper Dump Parser processes dump files into single like keyvalues containing information relevant to the entities outputs. From there it's processed and cached into enum struct objects that can be accessed through natives and stocks. As part of being an alternative to OutputInfo, all of the natives provided by the extension are available as stocks.
 
 ## Requirements
-  - `stripper_dump` functionality either from [Stripper:Source](https://forums.alliedmods.net/showthread.php?t=39439) or [Level KeyValues Stripper](https://github.com/nosoop/SM-LevelKeyValuesStripper)
   - `Sourcemod 1.10` for enum struct support
 
 # ConVars
@@ -28,4 +27,5 @@ Stripper Dump Parser is a mostly extension free alternative to slidybat's [Outpu
   - Calling the OutputInfo stocks are probably slow and not recommended
   
 ### ToDo
-  - Parse entities from `OnLevelInit` instead of using 3rd party extensions/plugins.
+  - Possibly add better late loading support without `stripper_dump` functionality.
+  - Handle more data internally instead of relying on reading and writing to files.
