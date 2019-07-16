@@ -25,5 +25,7 @@ Stripper Dump Parser is a mostly extension free alternative to slidybat's [Outpu
 
 ### Limitations
   - Cannot retrieve outputs from an entity that are given at run time.
-  - Calling the OutputInfo stocks are probably very slow and not recommended
-  - Cannot pass enumstructs directly through natives, so they are passed through an ArrayList instead.
+  - Calling the OutputInfo stocks are probably slow and not recommended
+  
+### ToDo
+  - Parse entities from `OnLevelInit` instead of using 3rd party extensions/plugins.
