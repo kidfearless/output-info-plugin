@@ -7,11 +7,11 @@ public Plugin myinfo =
 	name = "Output Dump Parser",
 	author = "KiD Fearless",
 	description = "Generates and parses stripper dump files.",
-	version = "1.5",
+	version = "1.8",
 	url = "https://steamcommunity.com/id/kidfearless/"
 }
 
-#define KEYWORDS_SIZE 6
+#pragma dynamic 1048576
 
 ArrayList gA_Entites;
 StringMap gSM_EntityList;
@@ -25,6 +25,11 @@ ConVar gC_ParseOnly;
 bool gB_Ready;
 
 char gS_StripperPath[PLATFORM_MAX_PATH];
+char gS_MapEntities[2097152];
+
+bool gB_Late;
+
+#define KEYWORDS_SIZE 6
 char KEYWORDS[KEYWORDS_SIZE][32] =
 {
 	"{",
@@ -46,6 +51,13 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("IsDumpReady", Native_IsDumpReady);
 
 	RegPluginLibrary("output_dump_parser");
+
+	gB_Late = late;
+
+	if(late)
+	{
+		gB_Ready = false;
+	}
 
 	return APLRes_Success;
 }
@@ -85,6 +97,13 @@ public void OnPluginToggled(ConVar convar, const char[] oldValue, const char[] n
 	}
 }
 
+public Action OnLevelInit(const char[] mapName, char mapEntities[2097152])
+{
+	gS_MapEntities = mapEntities;
+
+	return Plugin_Continue;
+}
+
 public void OnConfigsExecuted()
 {
 	if(gC_Enabled.BoolValue)
@@ -110,56 +129,47 @@ void InitSetup(bool recursive = false)
 	// Check for IO folder
 	if(!DirExists(jsonPath))
 	{
-		LOG("DIRECTORY DOESN'T EXIST");
+		LOG("OP DIRECTORY DOESN'T EXIST");
 		// Create one if it doesn't exist
 		if(!CreateDirectory(jsonPath, 511))
 		{
-			LogError("JSON PARSER COULD NOT CREATE IO FOLDER");
+			LogError("STRIPPER DUMP PARSER COULD NOT CREATE IO FOLDER");
 			return;
-		}
-		else //we created the folder and know that we haven't parsed any files. time to restart the process
-		{
-			LOG("CREATING DUMP FILE");
-			// If we've gotten to this point twice now, then we haven't been able to successfully create the folder. Time to give up.
-			if(recursive)
-			{
-				LOG("RECURSION LOOP DETECTED");
-			}
-			else
-			{
-				LOG("RECURSION TEST... GENERATING DUMP FILE");
-				ServerCommand("stripper_dump");
-				CreateTimer(1.0, Timer_Delayed_Init);
-				return;
-			}
 		}
 	}
 	else
 	{
-		LOG("DIRECTORY EXISTS...CHECKING FOR JSON FILE");
+		LOG("IO DIRECTORY EXISTS...CHECKING FOR JSON FILE");
 		Format(jsonPath, PLATFORM_MAX_PATH, "%s/%s.JSON", jsonPath, mapName);
 		if(!FileExists(jsonPath))
 		{
-			LOG("JSON FILE DOESN'T EXIST... CHECKING FOR CFG FILES");
+			LOG("JSON FILE DOESN'T EXIST... CHECKING FOR DUMPS DIRECTORY");
 			char stripperFile[PLATFORM_MAX_PATH];
-			bool found = false;
-			for(int i = 9; (found == false); --i)
+			FormatEx(stripperFile, PLATFORM_MAX_PATH, "%s/dumps/", gS_StripperPath);
+
+			if(!DirExists(stripperFile))
 			{
-				// Find the most recent within ten files
-				FormatEx(stripperFile, PLATFORM_MAX_PATH, "%s/dumps/%s.000%i.cfg", gS_StripperPath, mapName, i);
-				PrintToServer("stripperFile: %s", stripperFile);
-				if(FileExists(stripperFile))
+				LOG("DUMPS DIRECTORY DOESN'T EXIST");
+				// Create one if it doesn't exist
+				if(!CreateDirectory(stripperFile, 511))
 				{
-					LOG("FOUND FILE");
-					found = true;
+					LogError("STRIPPER DUMP PARSER COULD NOT CREATE DUMPS DIRECTORY");
+					return;
 				}
-				if(i == -1)
+			}
+
+			LOG("JSON FILE DOESN'T EXIST... CHECKING FOR CFG FILES");
+
+			Format(stripperFile, PLATFORM_MAX_PATH, "%s/%s.0000.cfg", stripperFile, mapName);
+			// Check if a dump already exists.
+			if(!FileExists(stripperFile))
+			{
+				if(gB_Late)
 				{
-					LOG("CFG FILE DOESN'T EXIST... GENERATING DUMP FILE");
-					// If we've gotten to this point with recursive set to true, then we've already attempted to make a dump. Better give up.
 					if(recursive)
 					{
-						LOG("RECURSIVE LOOP DETECTED...STOPPING EXECUTION THIS MAP");
+						LOG("RECURSION DETECTED... STOPPING EXECUTION THIS MAP");
+						gB_Ready = false;
 						return;
 					}
 					else
@@ -169,20 +179,39 @@ void InitSetup(bool recursive = false)
 						return;
 					}
 				}
+				else
+				{
+					// If it wasn't loaded late then we create our own dump from our copy.
+					File kvFile = OpenFile(stripperFile, "w");
+
+					int i, n;
+					char line[OUTPUT_SIZE];
+					while ((n = SplitStringOnKeyChar(gS_MapEntities[i], line)) != -1)
+					{
+						kvFile.WriteLine(line);
+						i += n;
+					}
+
+					delete kvFile;
+				}
 			}
 
+			// re-open the dump for reading
 			File mapFile = OpenFile(stripperFile, "r");
 
+			// create a temporary kv file for writing to.
 			char kvPath[PLATFORM_MAX_PATH];
 			FormatEx(kvPath, PLATFORM_MAX_PATH, "%s/dumps/%s.kv", gS_StripperPath, mapName);
 			File kvFile = OpenFile(kvPath, "a+");
 
+			// check for errors.
 			if(mapFile == null || kvFile == null)
 			{
 				LogError("ERROR: Could not open mapFile: '%s'", stripperFile);
 				return;
 			}
-			// Big buffer for entities with large amounts of I/O
+
+			// Format the dump into single line kv's
 			char buffer[OUTPUT_SIZE];
 			while(!mapFile.EndOfFile())
 			{
@@ -190,6 +219,7 @@ void InitSetup(bool recursive = false)
 				{
 					break;
 				}
+
 				char replace[] = "}\n";
 				ReplaceString(buffer, OUTPUT_SIZE, "\n", "");
 				ReplaceString(buffer, OUTPUT_SIZE, "}", replace);
@@ -200,20 +230,26 @@ void InitSetup(bool recursive = false)
 				kvFile.WriteString(buffer, false);
 			}
 			delete mapFile;
+			// reset the kv file, it's time for round 2
 			kvFile.Seek(0, SEEK_SET);
 			char kvPath2[PLATFORM_MAX_PATH];
 			FormatEx(kvPath2, PLATFORM_MAX_PATH, "%s2", kvPath);
 			File kvFile2 = OpenFile(kvPath2, "a+");
+			// Regular expression meant to match entities that don't have any outputs.
 			Regex regIdOnly = new Regex("^{(\"classname\" \"\\S*\")?,? ?(\"hammerid\" \"\\d*\")?,? ?(\"wait\" \"\\d?.?\\d?\")?,? ?}?$");
 
+			// loop through the first kv file and read each line
 			while(!kvFile.EndOfFile())
 			{
 				if(!kvFile.ReadLine(buffer, OUTPUT_SIZE))
 				{
 					break;
 				}
+
+				// replace any empty braces with empty strings
 				ReplaceString(buffer, OUTPUT_SIZE, "{}", "");
-				// ReplaceString(buffer, OUTPUT_SIZE, "\"\"", "\", \"");
+
+				// replace any entiteis without outputs with empty strings
 				if(regIdOnly.Match(buffer) > 0)
 				{
 					char buffer2[OUTPUT_SIZE]
@@ -225,12 +261,13 @@ void InitSetup(bool recursive = false)
 			}
 			delete regIdOnly;
 			delete kvFile;
+			
 			#if !defined NO_DEL
 			DeleteFile(kvPath);
 			#endif
+			// Last round, this inserts a root section to each line so that it can be read as a kv
 			kvFile2.Seek(0, SEEK_SET);
 			File JSONOutput = OpenFile(jsonPath, "a+");
-			// int counter = 0;
 
 			while(!kvFile2.EndOfFile())
 			{
@@ -238,7 +275,9 @@ void InitSetup(bool recursive = false)
 				{
 					break;
 				}
+
 				FormatOutputString(buffer);
+
 				if(!StrEqual(buffer, "\n"))
 				{
 					ReplaceString(buffer, OUTPUT_SIZE, "{", "\"0\"{");
@@ -247,7 +286,9 @@ void InitSetup(bool recursive = false)
 			}
 			delete JSONOutput;
 			delete kvFile2;
+			#if !defined NO_DEL
 			DeleteFile(kvPath2);
+			#endif
 			Ready(mapName);
 		}
 		else
@@ -298,18 +339,20 @@ void Ready(char mapName[PLATFORM_MAX_PATH])
 	while(!IsEndOfFile(ioFile))
 	{
 		char buffer[OUTPUT_SIZE];
-		// Import a kv file from the line that was read.
 
 		if(!ioFile.ReadLine(buffer, OUTPUT_SIZE))
 		{
 			break;
 		}
+
+		// Import the kv file from the current line.
 		KeyValues kv = new KeyValues("0");
 		if(!kv.ImportFromString(buffer))
 		{
 			LogError("Could not parse kv file: '%s'", buffer);
 			continue;
 		}
+
 		Entity ent;
 
 		// Grab it's hammer id
@@ -325,14 +368,13 @@ void Ready(char mapName[PLATFORM_MAX_PATH])
 		kv.GetString("classname", classname, MEMBER_SIZE);
 		strcopy(ent.Classname, MEMBER_SIZE, classname);
 
-		char counter[12];
-		strcopy(counter, 12, "0");
+		char counter[12] = "0";
 		char output[OUTPUT_SIZE];
 
 		// I don't know how this works, but it works, not gonna ask why.
 		ent.OutputList = new ArrayList(sizeof(Output));
 
-		// declare an int counter variable. run the HasString function to both check for it's existance and return it's value.
+		// declare an int counter variable. run the GetKVString function to both check for it's existance and return it's value.
 		// Then ONCE it's done increment the variable and format it into the counter.
 		for(int i = 0; GetKVString(kv, counter, output, OUTPUT_SIZE); FormatEx(counter, 12, "%i", ++i))
 		{
@@ -343,20 +385,12 @@ void Ready(char mapName[PLATFORM_MAX_PATH])
 
 		delete kv;
 
-		// PrintToServer("Original: \n");
-		// ent.Dump();
 		int index = gA_Entites.PushArray(ent);
-		// Entity test;
-		// gA_Entites.GetArray(index, test);
-
-		// PrintToServer("Saved: \n");
-		// test.Dump();
 
 		// associate the index with the entities hammerid
 		gSM_EntityList.SetValue(hammerid, index);
 	}
 
-	// HookTriggers();
 	delete ioFile;
 	gB_Ready = true;
 	Call_StartForward(gH_Forwards_OnFileProcessed);
@@ -425,6 +459,26 @@ public Action Timer_Delayed_Init(Handle timer)
 	return Plugin_Handled;
 }
 
+// credits to nosoop in his level_keyvalues plugin.
+int SplitStringOnKeyChar(const char[] input, char[] buffer)
+{
+	int i;
+	while(input[i] != '\n' && input[i] != 0)
+	{
+		++i;
+	}
+
+	if(!input[i])
+	{
+		return -1;
+	}
+
+	++i;
+	strcopy(buffer, i, input);
+
+	return i;
+}
+
 // native StringMap GetDumpStringMap();
 public any Native_GetDumpStringMap(Handle plugin, int numParams)
 {
@@ -465,20 +519,20 @@ public any Native_GetDumpEntityAsList(Handle plugin, int numParams)
 	if(!gSM_EntityList.GetValue(id, position))
 	{
 		//LogError("Could not find entity with with the index '%i', hammmerid '%i'.", index, hammer);
-		return INVALID_HANDLE;	
+		return INVALID_HANDLE;
 	}
 
 	if(position >= gA_Entites.Length || position < 0)
 	{
 		//LogError( "List position out of range");
-		return INVALID_HANDLE;	
+		return INVALID_HANDLE;
 	}
 
 	Entity temp;
 	gA_Entites.GetArray(position, temp);
-	
+
 	Entity ent;
-	CloneEntity(temp, ent);
+	CloneEntity(temp, ent, plugin);
 	ArrayList list = new ArrayList(sizeof(Entity));
 	list.PushArray(ent);
 
@@ -508,20 +562,20 @@ public any Native_GetDumpEntityAsArray(Handle plugin, int numParams)
 	if(!gSM_EntityList.GetValue(id, position))
 	{
 		//LogError("Could not find entity with with the index '%i', hammmerid '%i'.", index, hammer);
-		return false;	
+		return false;
 	}
 
 	if(position >= gA_Entites.Length || position < 0)
 	{
 		//LogError( "List position out of range");
-		return false;	
+		return false;
 	}
 
 	Entity temp;
 	gA_Entites.GetArray(position, temp);
-	
+
 	Entity ent;
-	CloneEntity(temp, ent);
+	CloneEntity(temp, ent, plugin);
 	SetNativeArray(2, ent, sizeof(Entity));
 
 	return true;
@@ -549,20 +603,20 @@ public any Native_GetDumpEntityFromID(Handle plugin, int numParams)
 	if(!gSM_EntityList.GetValue(id, position))
 	{
 		//LogError("Could not find entity with that index.");
-		return INVALID_HANDLE;	
+		return INVALID_HANDLE;
 	}
 
 	if(position >= gA_Entites.Length || position < 0)
 	{
 		//LogError("List position out of range");
-		return INVALID_HANDLE;	
+		return INVALID_HANDLE;
 	}
 
 	Entity temp;
 	gA_Entites.GetArray(position, temp);
-	
+
 	Entity ent;
-	CloneEntity(temp, ent);
+	CloneEntity(temp, ent, plugin);
 	ArrayList list = new ArrayList(sizeof(Entity));
 	list.PushArray(ent);
 
@@ -591,20 +645,20 @@ public any Native_GetDumpEntityFromIDAsArray(Handle plugin, int numParams)
 	if(!gSM_EntityList.GetValue(id, position))
 	{
 		//LogError("Could not find entity with that index.");
-		return false;	
+		return false;
 	}
 
 	if(position >= gA_Entites.Length || position < 0)
 	{
 		//LogError("List position out of range");
-		return false;	
+		return false;
 	}
 
 	Entity temp;
 	gA_Entites.GetArray(position, temp);
-	
+
 	Entity ent;
-	CloneEntity(temp, ent);
+	CloneEntity(temp, ent, plugin);
 
 
 	return true;
@@ -623,7 +677,7 @@ public any Native_GetDumpEntities(Handle plugin, int numParams)
 		//LogError("Entity lists are empty.");
 		return INVALID_HANDLE;
 	}
-	
+
 	ArrayList temp = new ArrayList(sizeof(Entity));
 
 	for(int i = 0; i < gA_Entites.Length; ++i)
@@ -632,11 +686,11 @@ public any Native_GetDumpEntities(Handle plugin, int numParams)
 		gA_Entites.GetArray(i, original);
 
 		Entity cloned;
-		CloneEntity(original, cloned);
+		CloneEntity(original, cloned, plugin);
 
 		temp.PushArray(cloned);
 	}
-	
+
 	return temp;
 }
 

@@ -6,12 +6,12 @@
 #define OUTPUT_SIZE 2048
 #define MEMBER_SIZE 128
 
-#define DEBUG
+// #define DEBUG
 
 #if defined DEBUG
 	#define LOG(%1) LogMessage(%1)
 #else
-	#define LOG(%1) //(%1)
+	#define LOG(%1) DoNothing(%1)
 #endif
 
 // Used to keep temporary files for debugging
@@ -125,12 +125,16 @@ stock void CloneOutput(const Output input, Output out)
 *	
 *	return: noreturn
 * */
-stock void CloneEntity(const Entity input, Entity out)
+stock void CloneEntity(const Entity input, Entity out, Handle newOwner = null)
 {
 	strcopy(out.HammerID, MEMBER_SIZE, input.HammerID);
 	out.Wait = input.Wait;
 	strcopy(out.Classname, MEMBER_SIZE, input.Classname);
 	out.OutputList = input.OutputList.Clone();
+	if(newOwner != null)
+	{
+		CloneHandle(out.OutputList, newOwner);
+	}
 }
 
 /* *
@@ -538,4 +542,8 @@ stock int GetHammerFromIndex(int index)
 	}
 
 	return GetEntProp(index, Prop_Data, "m_iHammerID");
+}
+
+stock void DoNothing(const char[] nothing)
+{
 }
