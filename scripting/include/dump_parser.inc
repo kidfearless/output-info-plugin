@@ -130,10 +130,13 @@ stock void CloneEntity(const Entity input, Entity out, Handle newOwner = null)
 	strcopy(out.HammerID, MEMBER_SIZE, input.HammerID);
 	out.Wait = input.Wait;
 	strcopy(out.Classname, MEMBER_SIZE, input.Classname);
-	out.OutputList = input.OutputList.Clone();
 	if(newOwner != null)
 	{
-		CloneHandle(out.OutputList, newOwner);
+		out.OutputList = view_as<ArrayList>(CloneHandle(input.OutputList.Clone(), newOwner));
+	}
+	else
+	{
+		out.OutputList = input.OutputList.Clone();
 	}
 }
 
