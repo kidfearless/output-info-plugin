@@ -578,7 +578,7 @@ public any Native_GetDumpEntityAsArray(Handle plugin, int numParams)
 	CloneEntity(temp, ent, plugin);
 	SetNativeArray(2, ent, sizeof(Entity));
 
-	return true;
+	return (ent.OutputList != null);
 }
 
 // native ArrayList GetDumpEntityFromID(int ent);
@@ -661,7 +661,7 @@ public any Native_GetDumpEntityFromIDAsArray(Handle plugin, int numParams)
 	CloneEntity(temp, ent, plugin);
 
 
-	return true;
+	return (ent.OutputList != null);
 }
 
 // native ArrayList GetDumpEntities();
