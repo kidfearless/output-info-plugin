@@ -295,6 +295,11 @@ stock int GetOutputCount(int index, const char[] output = "")
 	return count;
 }
 
+stock int GetOutputActionCount(int index, const char[] output = "")
+{
+	return GetOutputCount(index, output);
+}
+
 /* *
 *	Retrieves the target at the current index for the given output.
 *	Not recommended as outputs aren't organized and aren't guarenteed to be the same between sessions and servers.
@@ -337,7 +342,7 @@ stock bool GetOutputTarget(int index, const char[] output, int num, char[] targe
 			if(count++ == num)
 			{
 				strcopy(target, length, out.Target);
-				ret = true
+				ret = true;
 				break;
 			}
 		}
@@ -345,6 +350,11 @@ stock bool GetOutputTarget(int index, const char[] output, int num, char[] targe
 
 	ent.CleanUp();
 	return ret;
+}
+
+stock bool GetOutputActionTarget(int index, const char[] output, int num, char[] target, int length = MEMBER_SIZE)
+{
+	return GetOutputTarget(index, output, num, target, length);
 }
 
 /* *
@@ -439,7 +449,7 @@ stock bool GetOutputParameter(int index, const char[] output, int num, char[] pa
 			if(count++ == num)
 			{
 				strcopy(parameters, length, out.Parameters);
-				ret = true
+				ret = true;
 				break;
 			}
 		}
@@ -447,6 +457,11 @@ stock bool GetOutputParameter(int index, const char[] output, int num, char[] pa
 
 	ent.CleanUp();
 	return ret;
+}
+
+stock bool GetOutputActionParameter(int index, const char[] output, int num, char[] parameters, int length = MEMBER_SIZE)
+{
+	return GetOutputParameter(index, output, num, parameters, length);
 }
 
 /* *
@@ -495,6 +510,11 @@ stock float GetOutputDelay(int index, const char[] output, int num)
 
 	ent.CleanUp();
 	return delay;
+}
+
+stock float GetOutputActionDelay(int index, const char[] output, int num)
+{
+	return GetOutputDelay(index, output, num);
 }
 
 public SharedPlugin __pl_output_dump_parser =
