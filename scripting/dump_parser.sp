@@ -7,7 +7,7 @@ public Plugin myinfo =
 	name = "Output Dump Parser",
 	author = "KiD Fearless",
 	description = "Generates and parses stripper dump files.",
-	version = "1.8",
+	version = "1.9",
 	url = "https://steamcommunity.com/id/kidfearless/"
 }
 
@@ -532,7 +532,7 @@ public any Native_GetDumpEntityAsList(Handle plugin, int numParams)
 	gA_Entites.GetArray(position, temp);
 
 	Entity ent;
-	CloneEntity(temp, ent, plugin);
+	CloneEntity(temp, ent);
 	ArrayList list = new ArrayList(sizeof(Entity));
 	list.PushArray(ent);
 
@@ -575,7 +575,7 @@ public any Native_GetDumpEntityAsArray(Handle plugin, int numParams)
 	gA_Entites.GetArray(position, temp);
 
 	Entity ent;
-	CloneEntity(temp, ent, plugin);
+	CloneEntity(temp, ent);
 	SetNativeArray(2, ent, sizeof(Entity));
 
 	return (ent.OutputList != null);
@@ -616,7 +616,7 @@ public any Native_GetDumpEntityFromID(Handle plugin, int numParams)
 	gA_Entites.GetArray(position, temp);
 
 	Entity ent;
-	CloneEntity(temp, ent, plugin);
+	CloneEntity(temp, ent);
 	ArrayList list = new ArrayList(sizeof(Entity));
 	list.PushArray(ent);
 
@@ -658,7 +658,7 @@ public any Native_GetDumpEntityFromIDAsArray(Handle plugin, int numParams)
 	gA_Entites.GetArray(position, temp);
 
 	Entity ent;
-	CloneEntity(temp, ent, plugin);
+	CloneEntity(temp, ent);
 
 
 	return (ent.OutputList != null);
@@ -686,7 +686,7 @@ public any Native_GetDumpEntities(Handle plugin, int numParams)
 		gA_Entites.GetArray(i, original);
 
 		Entity cloned;
-		CloneEntity(original, cloned, plugin);
+		CloneEntity(original, cloned);
 
 		temp.PushArray(cloned);
 	}

@@ -125,19 +125,13 @@ stock void CloneOutput(const Output input, Output out)
 *	
 *	return: noreturn
 * */
-stock void CloneEntity(const Entity input, Entity out, Handle newOwner = null)
+stock void CloneEntity(const Entity input, Entity out)
 {
 	strcopy(out.HammerID, MEMBER_SIZE, input.HammerID);
 	out.Wait = input.Wait;
 	strcopy(out.Classname, MEMBER_SIZE, input.Classname);
-	if(newOwner != null)
-	{
-		out.OutputList = view_as<ArrayList>(CloneHandle(input.OutputList.Clone(), newOwner));
-	}
-	else
-	{
-		out.OutputList = input.OutputList.Clone();
-	}
+
+	out.OutputList = input.OutputList.Clone();
 }
 
 /* *
