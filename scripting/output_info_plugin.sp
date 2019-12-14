@@ -7,7 +7,7 @@ public Plugin myinfo =
 	name = "Output Info Plugin",
 	author = "KiD Fearless",
 	description = "Plugin Alternative To Output Info",
-	version = "2.0",
+	version = "2.0.1",
 	url = "https://github.com/kidfearless"
 }
 
