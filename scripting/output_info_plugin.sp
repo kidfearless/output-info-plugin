@@ -70,7 +70,7 @@ public Action OnLevelInit(const char[] mapName, char mapEntities[2097152])
 {
 	for(int current = 0, next = 0; (next = FindNextKeyChar(mapEntities[current], '}')) != -1; current += next)
 	{
-		char entity[OUTPUT_SIZE];
+		char[] entity = new char[next+1];
 		strcopy(entity, next, mapEntities[current]);
 
 		Entity ent;
@@ -121,13 +121,13 @@ bool LocalGetOutputEntity(int index, Entity ent)
 	int position = -1;
 	if(!gSM_EntityList.GetValue(id, position))
 	{
-		LogError("Could not find entity with with the index '%i', hammmerid '%i'.", index, hammer);
+		LogError("Could not find entity with the index '%i', hammmerid '%i'.", index, hammer);
 		return false;
 	}
 
 	if(position >= gA_Entites.Length || position < 0)
 	{
-		LogError( "List position out of range");
+		LogError("List position out of range");
 		return false;
 	}
 
