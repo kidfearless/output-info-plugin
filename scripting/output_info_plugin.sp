@@ -2,12 +2,14 @@
 #include <regex>
 #include <output_info_plugin>
 
+#define PLUGIN_VERSION 2
+
 public Plugin myinfo =
 {
 	name = "Output Info Plugin",
 	author = "KiD Fearless",
 	description = "Plugin Alternative To Output Info",
-	version = "2.0.1",
+	version = "2.0.2",
 	url = "https://github.com/kidfearless"
 }
 
@@ -19,6 +21,12 @@ StringMap gSM_EntityList;
 GlobalForward gF_OnEntitiesReady;
 
 bool gB_Ready;
+
+#if PLUGIN_VERSION != INCLUDE_VERSION
+// Closest thing to a compile time error that we can get
+// The include file for this plugin contains code that may need to be updated.
+Please__update__your__include__to__match__plugins__version
+#endif
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
@@ -68,6 +76,18 @@ public void OnPluginStart()
 
 public Action OnLevelInit(const char[] mapName, char mapEntities[2097152])
 {
+	gB_Ready = false;
+
+	for(int i = 0; i < gA_Entites.Length; ++i)
+	{
+		Entity e;
+		gA_Entites.GetArray(i, e);
+		e.CleanUp();
+	}
+
+	gA_Entites.Clear();
+	gSM_EntityList.Clear();
+
 	for(int current = 0, next = 0; (next = FindNextKeyChar(mapEntities[current], '}')) != -1; current += next)
 	{
 		char[] entity = new char[next+1];
@@ -76,9 +96,16 @@ public Action OnLevelInit(const char[] mapName, char mapEntities[2097152])
 		Entity ent;
 		ent.Parse(entity);
 
-		// associate the index with the entities hammerid
-		int index = gA_Entites.PushArray(ent);
-		gSM_EntityList.SetValue(ent.HammerID, index);
+		if(ent.OutputList.Length > 0)
+		{
+			// associate the index with the entities hammerid
+			int index = gA_Entites.PushArray(ent);
+			gSM_EntityList.SetValue(ent.HammerID, index);
+		}
+		else
+		{
+			ent.CleanUp();
+		}
 	}
 	
 	gB_Ready = true;
@@ -170,7 +197,7 @@ public any Native_GetOutputEntity(Handle plugin, int numParams)
 	gA_Entites.GetArray(position, temp);
 
 	Entity ent;
-	CloneEntity(temp, ent);
+	CloneEntity(temp, ent, plugin);
 	SetNativeArray(2, ent, sizeof(Entity));
 
 	return (ent.OutputList != null);
@@ -192,18 +219,21 @@ public any Native_GetOutputEntities(Handle plugin, int numParams)
 
 	ArrayList temp = new ArrayList(sizeof(Entity));
 
+	ArrayList list = view_as<ArrayList>(CloneHandle(temp, plugin));
+	delete temp;
+
 	for(int i = 0; i < gA_Entites.Length; ++i)
 	{
 		Entity original;
 		gA_Entites.GetArray(i, original);
 
 		Entity cloned;
-		CloneEntity(original, cloned);
+		CloneEntity(original, cloned, plugin);
 
-		temp.PushArray(cloned);
+		list.PushArray(cloned);
 	}
 
-	return temp;
+	return list;
 }
 
 // native bool AreEntitiesReady();
@@ -245,7 +275,7 @@ public any Native_GetOutputCount(Handle plugin, int numParams)
 		strcopy(output, MEMBER_SIZE, buffer);
 	}
 
-	for(int i = 0; i < ent.OutputList.	Length; ++i)
+	for(int i = 0; i < ent.OutputList.Length; ++i)
 	{
 		Output out;
 		ent.OutputList.GetArray(i, out);

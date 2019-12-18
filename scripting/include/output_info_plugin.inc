@@ -5,6 +5,7 @@
 
 #define OUTPUT_SIZE 2048
 #define MEMBER_SIZE 128
+#define INCLUDE_VERSION 2
 
 // set to 0 to use stocks instead of native
 #define USE_NATIVES 1
@@ -139,8 +140,9 @@ enum struct Entity
 		}
 		// #endregion
 		// #region outputs
+		delete this.OutputList;
 
-		ArrayList outputList = new ArrayList(sizeof(Output));
+		this.OutputList = new ArrayList(sizeof(Output));
 		Regex outputMatch = new Regex("(\"On\\w*\") (\"[^\"]+\")");
 
 		for(int i = 0; i < inputLength && outputMatch.Match(input[i]) > 0; i += outputMatch.MatchOffset())
@@ -156,13 +158,12 @@ enum struct Entity
 			StripQuotes(parameters);
 			output.Parse(parameters);
 			
-			outputList.PushArray(output);
+			this.OutputList.PushArray(output);
 		}
 
 
 		delete outputMatch;
 
-		this.OutputList = outputList;
 		// #endregion
 	}
 }
@@ -173,12 +174,16 @@ enum struct Entity
 *	
 *	return: noreturn
 **/
-stock void CloneEntity(const Entity input, Entity out)
+stock void CloneEntity(const Entity input, Entity out, Handle newOwner = INVALID_HANDLE)
 {
 	out.HammerID = input.HammerID;
 	out.Classname = input.Classname;
 	out.Wait = input.Wait;
-	out.OutputList = input.OutputList.Clone();
+
+	// shavits method of cloning arraylists
+	ArrayList list = view_as<ArrayList>(CloneHandle(input.OutputList, newOwner));
+	out.OutputList = list.Clone();
+	delete list;
 }
 
 /**
@@ -308,6 +313,7 @@ stock int GetOutputCount(int index, const char[] output = "")
 	Entity ent;
 	if(!GetOutputEntity(index, ent))
 	{
+		ent.CleanUp();
 		return -1;
 	}
 
@@ -349,6 +355,7 @@ stock bool GetOutputTarget(int index, const char[] output, int num, char[] targe
 	Entity ent;
 	if(!GetOutputEntity(index, ent))
 	{
+		ent.CleanUp();
 		return false;
 	}
 	
@@ -399,6 +406,7 @@ stock bool GetOutputTargetInput(int index, const char[] output, int num, char[] 
 	Entity ent;
 	if(!GetOutputEntity(index, ent))
 	{
+		ent.CleanUp();
 		return false;
 	}
 
@@ -450,6 +458,7 @@ stock bool GetOutputParameter(int index, const char[] output, int num, char[] pa
 	Entity ent;
 	if(!GetOutputEntity(index, ent))
 	{
+		ent.CleanUp();
 		return false;
 	}
 
@@ -499,6 +508,7 @@ stock float GetOutputDelay(int index, const char[] output, int num)
 	Entity ent;
 	if(!GetOutputEntity(index, ent))
 	{
+		ent.CleanUp();
 		return -1.0;
 	}
 	
