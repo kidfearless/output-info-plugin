@@ -5,7 +5,7 @@
 
 #define OUTPUT_SIZE 2048
 #define MEMBER_SIZE 128
-#define INCLUDE_VERSION 2
+#define INCLUDE_VERSION 3
 
 // set to 0 to use stocks instead of native
 #define USE_NATIVES 1
@@ -180,9 +180,8 @@ stock void CloneEntity(const Entity input, Entity out, Handle newOwner = INVALID
 	out.Classname = input.Classname;
 	out.Wait = input.Wait;
 
-	// shavits method of cloning arraylists
-	ArrayList list = view_as<ArrayList>(CloneHandle(input.OutputList, newOwner));
-	out.OutputList = list.Clone();
+	ArrayList list = input.OutputList.Clone();
+	out.OutputList = view_as<ArrayList>(CloneHandle(list, newOwner));
 	delete list;
 }
 

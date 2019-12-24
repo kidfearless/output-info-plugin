@@ -2,14 +2,14 @@
 #include <regex>
 #include <output_info_plugin>
 
-#define PLUGIN_VERSION 2
+#define PLUGIN_VERSION 3
 
 public Plugin myinfo =
 {
 	name = "Output Info Plugin",
 	author = "KiD Fearless",
 	description = "Plugin Alternative To Output Info",
-	version = "2.0.2",
+	version = "2.0.3",
 	url = "https://github.com/kidfearless"
 }
 
@@ -148,13 +148,13 @@ bool LocalGetOutputEntity(int index, Entity ent)
 	int position = -1;
 	if(!gSM_EntityList.GetValue(id, position))
 	{
-		LogError("Could not find entity with the index '%i', hammmerid '%i'.", index, hammer);
+		// LogError("Could not find entity with the index '%i', hammmerid '%i'.", index, hammer);
 		return false;
 	}
 
 	if(position >= gA_Entites.Length || position < 0)
 	{
-		LogError("List position out of range");
+		// LogError("List position out of range");
 		return false;
 	}
 
@@ -389,7 +389,7 @@ public any Native_GetOutputParameter(Handle plugin, int numParams)
 	Entity ent;
 	if(!LocalGetOutputEntity(index, ent))
 	{
-		LogError("Failed to get local output entity");
+		// LogError("Failed to get local output entity");
 		return false;
 	}
 
