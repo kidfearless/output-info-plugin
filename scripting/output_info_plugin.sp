@@ -92,7 +92,7 @@ public Action OnLevelInit(const char[] mapName, char mapEntities[2097152])
 	{
 		char[] entity = new char[next+1];
 		strcopy(entity, next, mapEntities[current]);
-
+		
 		Entity ent;
 		ent.Parse(entity);
 
