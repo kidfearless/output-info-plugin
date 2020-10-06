@@ -45,7 +45,14 @@ enum struct Output
 	{
 		// Break it up into more managable parts
 		char entity[OUTPUTSIZE][MEMBER_SIZE];
-		ExplodeString(buffer, "\e", entity, OUTPUTSIZE, MEMBER_SIZE);
+		if(GetEngineVersion() == Engine_CSS)
+		{
+			ExplodeString(buffer, ",", entity, OUTPUTSIZE, MEMBER_SIZE);
+		} else
+		{
+			ExplodeString(buffer, "\e", entity, OUTPUTSIZE, MEMBER_SIZE);
+		}
+		
 
 		this.Target = entity[TARGETENTITY];
 		this.Input = entity[OUTPUTNAME];
