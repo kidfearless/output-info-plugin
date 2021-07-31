@@ -1,3 +1,5 @@
+# WARNING DOES NOT WORK ANYMORE AFTER THIS COMMIT https://github.com/alliedmodders/sourcemod/pull/1534
+
 # Output Info Plugin
 
 Output Info Plugin is a mostly extension free alternative to slidybat's [OutputInfo extension](https://github.com/SlidyBat/sm-ext-outputinfo). Output Info Plugin takes the map entities string from `OnLevelInit` and stores the relevant information in enum structs. The plugin will create it's own implementation of the OutputInfo natives if none can be found. As long as the plugin calling the natives doesn't have OutputInfo as a required extension then Output Info Plugin can handle them.
